@@ -72,7 +72,5 @@ boolean debounceWater(boolean state) {
     delay(100);
     stateNow = digitalRead(waterInput);
   }
-
-  Serial.println("Stopping Buzzer.");
   return stateNow;
 }
