@@ -55,14 +55,11 @@ void loop() {
 
 
 boolean debounceButton(boolean state) {
-
   boolean stateNow = digitalRead(buttonInput);
-
   if (state != stateNow) {
     delay(10);
     stateNow = digitalRead(buttonInput);
   }
-
   return stateNow;
 }
 
