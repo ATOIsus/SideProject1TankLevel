@@ -1,76 +1,87 @@
-//const int relayOutput = 2;
-const int buttonInput = 3;
-const int waterInput = 4;
-const int buzzerOutput = 5;
+unsigned long firstTime = 0;
+unsigned long secondTime = 0;
+int waterState = LOW;
+int stopState = LOW;
 
-int buttonPressed = LOW;
-int tankStatus = LOW;
+const int waterButton = 2;
+const int stopButton = 3;
+const int buzzer = 8;
 
-void setup() {
+void setup()
+{
+  pinMode(waterButton, INPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(stopButton, INPUT);
   Serial.begin(9600);
-  //pinMode(relayOutput, OUTPUT);
-  pinMode(buttonInput, INPUT);
-  pinMode(waterInput, INPUT);
-}
-
-void loop() {
-
-  if (debounceWater(tankStatus) == HIGH && tankStatus == LOW) {
-    noTone(buzzerOutput);
-    //digitalWrite(relayOutput, HIGH);
-    //delay(1000);
-
-    tankStatus = HIGH;
-    Serial.println("Tank is not Full");
-
-    if (debounceButton(buttonPressed) == HIGH && buttonPressed == LOW) {
-      buttonPressed = HIGH;
-      //digitalWrite(relayOutput, LOW);
-      //delay(1000);
-
-      Serial.println("Button Pressed, Silence the Buzzer!");
-      Serial.println("Stopping buzzer.");
-      noTone(buzzerOutput);
-    }
-    else if (debounceButton(buttonPressed) == LOW && buttonPressed == HIGH) {
-      buttonPressed = LOW;
-      Serial.println("Button has been reset.");
-    }
-
-  }
-  else if (debounceWater(tankStatus) == LOW && tankStatus == HIGH) {
-    tankStatus = LOW;
-    Serial.println("Tank is Full");
-
-
-    Serial.println("Playing buzzer.");
-    tone(buzzerOutput, 100);
-    delay(500);
-
-  }
-
-  //Serial.println("Stopping buzzer.");
-  //noTone(buzzerOutput);
 }
 
 
-boolean debounceButton(boolean state) {
-  boolean stateNow = digitalRead(buttonInput);
+
+void loop()
+{
+  waterState = digitalRead(waterButton);
+
+  if (firstTime + secondTime == 0UL) {
+    if (debounceWater(waterButton) == HIGH) {
+      Serial.println("Switch is On for First Time.");
+      waterState == HIGH;
+      firstTime = millis();  // Record the time when switch is turned on or button is pressed.
+    } else if (debounceWater(waterButton) == LOW) {
+      waterState == LOW;
+    }
+  }
+
+  if (firstTime > 10) {
+    secondTime = millis(); // Record the secondTime after firstTime is initialized i.e. switch on.
+  }
+
+  if (secondTime - firstTime > 9000UL) {
+    Serial.println("A minute has passed.");
+
+    if (debounceWater(waterState) == HIGH) {
+      Serial.println("Switch is On for Second Time.");
+
+      tone(buzzer, 100);
+      delay(1000);
+      tone(buzzer, 400);
+      delay(1000);
+      tone(buzzer, 700);
+      delay(1000);
+    }
+
+    firstTime = 0;       // Reset the first time.
+  }
+
+  stopState = digitalRead(stopButton);
+
+  if (debounceButton(stopButton) == HIGH) {
+    Serial.println("Stopping Buzzer");
+    stopState = HIGH;
+    noTone(buzzer);
+  } else if (debounceButton(stopButton) == LOW) {
+    stopState = LOW;
+  }
+
+
+  secondTime = 0;       // Reset the second time.
+}
+
+
+
+int debounceWater(int state) {
+  int stateNow = digitalRead(waterButton);
   if (state != stateNow) {
     delay(10);
-    stateNow = digitalRead(buttonInput);
+    stateNow = digitalRead(waterButton);
   }
   return stateNow;
 }
 
-
-boolean debounceWater(boolean state) {
-
-  boolean stateNow = digitalRead(waterInput);
-
+int debounceButton(int state) {
+  int stateNow = digitalRead(stopButton);
   if (state != stateNow) {
-    delay(100);
-    stateNow = digitalRead(waterInput);
+    delay(10);
+    stateNow = digitalRead(stopButton);
   }
   return stateNow;
 }
