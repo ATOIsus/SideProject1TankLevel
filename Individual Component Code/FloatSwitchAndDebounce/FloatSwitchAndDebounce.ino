@@ -1,5 +1,6 @@
 const int waterInput = 4;
 int tankStatus = LOW;
+int preTankStatus = LOW;
 
 void setup() {
   Serial.begin(9600);
@@ -7,12 +8,12 @@ void setup() {
 }
 
 void loop() {
-  if (debounceWater(tankStatus) == HIGH && tankStatus == LOW) {
-    tankStatus = HIGH;
+  if (debounceWater(tankStatus) == HIGH && preTankStatus == LOW) {
+    preTankStatus = HIGH;
     Serial.println("Tank is not Full");
   }
-  else if (debounceWater(tankStatus) == LOW && tankStatus == HIGH) {
-    tankStatus = LOW;
+  else if (debounceWater(tankStatus) == LOW && preTankStatus == HIGH) {
+    preTankStatus = LOW;
     Serial.println("Tank is Full");
   }
 }
