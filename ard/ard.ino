@@ -2,18 +2,21 @@ unsigned long firstTime = 0;
 unsigned long secondTime = 0;
 unsigned long lastFillTime = 0;
 int waterState = LOW;
+int prevWaterState = LOW;
 int stopState = LOW;
 int prevStopState = LOW;
 
 const int waterButton = 2;
 const int stopButton = 3;
 const int buzzer = 8;
+const int relayOut = 7;
 
 void setup()
 {
   pinMode(waterButton, INPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(stopButton, INPUT);
+  pinMode(relayOut, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -33,11 +36,14 @@ void loop()
     if (firstTime + secondTime == 0UL) {
       waterState = digitalRead(waterButton);
 
-      if (debounceWater(waterState) == HIGH) {
+      if (debounceWater(waterState) == HIGH && prevWaterState == LOW) {
         Serial.println("Switch is On for First Time.");
+        prevWaterState == HIGH;
         firstTime = millis();  // Record the time when switch is turned on or button is pressed.
+      } else if (debounceWater(waterState) == LOW && prevWaterState == HIGH) {
+        prevWaterState == LOW;
       }
-    } 
+    }
 
     if (conditionOne) {
       // 20 minutes has passed.
@@ -46,9 +52,9 @@ void loop()
   }
 
   bool conditionTwo = firstTime != 0UL && secondTime != 0UL;
-  if (secondTime - firstTime > 30000UL && conditionTwo) {
+  if (secondTime - firstTime > 20000UL && conditionTwo) {
 
-    Serial.println("30 seconds has passed.");
+    Serial.println("20 seconds has passed.");
 
     waterState = digitalRead(waterButton);
 
@@ -58,11 +64,11 @@ void loop()
       lastFillTime = millis();
 
       tone(buzzer, 100);
-      delay(1000);
+      delay(500);
       tone(buzzer, 400);
-      delay(1000);
+      delay(500);
       tone(buzzer, 700);
-      delay(1000);
+      delay(500);
     }
 
     firstTime = 0UL;       // Reset the first time.
@@ -73,6 +79,9 @@ void loop()
   if (debounceButton(stopState) == HIGH && prevStopState == LOW) {
     Serial.println("Stopping Buzzer");
     noTone(buzzer);
+    // digitalWrite(7, LOW);// Turn relay OFF
+    // delay(5000);// Keep it OFF for 5 seconds
+
     prevStopState = HIGH;
   }
 
